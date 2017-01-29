@@ -60,6 +60,16 @@ func (c *Cache) Add(key interface{}, value interface{}) {
 	}
 }
 
+func (c *Cache) Delete(key interface{}) bool {
+	if v, ok := c.m[key]; ok {
+		c.ll.Remove(v)
+		e := v.Value.(*entry)
+		delete(c.m, e.key)
+		return true
+	}
+	return false
+}
+
 func (c *Cache) Dump() {
 	for en := c.ll.Front(); en != nil; en = en.Next() {
 		fmt.Printf("%#v\n", en.Value)
@@ -69,7 +79,7 @@ func (c *Cache) Dump() {
 func (c *Cache) Get(key interface{}) (interface{}, bool) {
 	if v, ok := c.m[key]; ok {
 		e := v.Value.(*entry)
-		fmt.Printf("duration: %v, expired: %v\n", time.Since(e.createTime), c.expire)
+		//fmt.Printf("duration: %v, expired: %v\n", time.Since(e.createTime), c.expire)
 		if c.expire == 0 {
 			return e.value, true
 		} else {

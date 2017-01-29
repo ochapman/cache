@@ -103,3 +103,31 @@ func TestMaxEntries(t *testing.T) {
 		}
 	}
 }
+
+func TestDelete(t *testing.T) {
+	var deleteTests = []struct {
+		name          string
+		addKey        interface{}
+		delKey        interface{}
+		getKey        interface{}
+		delExpectedOk bool
+		getExpectedOk bool
+	}{
+		{"ExistKey", 3, 3, 3, true, false},
+		{"NotExistKey", 1, 5, 5, false, false},
+	}
+	for _, tt := range deleteTests {
+		c := cache.New(0, 0)
+		c.Add(tt.addKey, 1234)
+		ok := c.Delete(tt.delKey)
+		if ok != tt.delExpectedOk {
+			t.Fatalf("%s hit %v, want %v\n", tt.name, ok, tt.delExpectedOk)
+		}
+		v, ok := c.Get(tt.getKey)
+		if ok != tt.getExpectedOk {
+			t.Fatalf("%s hit %v, want %v\n", tt.name, ok, tt.getExpectedOk)
+		} else if ok && v != 1234 {
+			t.Fatalf("%s expected to return 1234, but got %v", tt.name, ok, v)
+		}
+	}
+}
