@@ -64,3 +64,42 @@ func TestExpire(t *testing.T) {
 		//t.Logf("%s hit: %v, value: %v expired: %v", tt.name, ok, v, tt.expired)
 	}
 }
+
+func TestMaxEntries(t *testing.T) {
+	var maxTests = []struct {
+		name       string
+		keys       []int
+		leftKeys   []int
+		maxEntries uint64
+		expectedOk bool
+	}{
+		{"excceedMax", []int{1, 2, 3, 4}, []int{2, 3, 4}, 3, true},
+		{"notExcceedMax", []int{1, 2, 3, 4}, []int{2, 3, 4}, 8, false},
+	}
+	for _, tt := range maxTests {
+		c := cache.New(tt.maxEntries, 0)
+		result := true
+		for i := 0; i < len(tt.keys); i++ {
+			c.Add(tt.keys[i], 1234)
+		}
+		cacheKeys := make([]int, 0)
+		for i := 0; i < len(tt.keys); i++ {
+			_, ok := c.Get(tt.keys[i])
+			if ok {
+				cacheKeys = append(cacheKeys, tt.keys[i])
+			}
+		}
+		if len(cacheKeys) == len(tt.leftKeys) {
+			for i := 0; i < len(cacheKeys); i++ {
+				if cacheKeys[i] != tt.leftKeys[i] {
+					result = false
+				}
+			}
+		} else {
+			result = false
+		}
+		if result != tt.expectedOk {
+			t.Fatalf("%s get %v expected %v, ", tt.name, result, tt.expectedOk)
+		}
+	}
+}

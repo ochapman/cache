@@ -40,6 +40,12 @@ func (c *Cache) Add(key interface{}, value interface{}) {
 		value:      value,
 		createTime: time.Now(),
 	}
+	//Remove old entry if excceed maxEntries
+	//fmt.Printf("key len: %v, maxEntries: %v\n", len(c.m), c.maxEntries)
+	if c.maxEntries != 0 && uint64(len(c.m)) > c.maxEntries-1 {
+		//fmt.Printf("Delete key: %v, value: %v\n", key, value)
+		c.deleteOldest()
+	}
 
 	if v, ok := c.m[key]; ok {
 		//update value
@@ -73,4 +79,11 @@ func (c *Cache) Get(key interface{}) (interface{}, bool) {
 		}
 	}
 	return nil, false
+}
+
+func (c *Cache) deleteOldest() {
+	back := c.ll.Back()
+	key := back.Value.(*entry).key
+	c.ll.Remove(back)
+	delete(c.m, key)
 }
